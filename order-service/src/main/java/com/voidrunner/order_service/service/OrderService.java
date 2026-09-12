@@ -12,13 +12,17 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.voidrunner.common.events.OrderCreatedEvent;
+
 @Service
 public class OrderService {
 
     private final OrderRepository orderRepository;
+    private final OrderEventProducer orderEventProducer;
 
-    public OrderService(OrderRepository orderRepository) {
+    public OrderService(OrderRepository orderRepository, OrderEventProducer orderEventProducer) {
         this.orderRepository = orderRepository;
+        this.orderEventProducer = orderEventProducer;
     }
 
     @Transactional
@@ -46,6 +50,18 @@ public class OrderService {
         order.setTotalAmount(totalAmount);
 
         Order savedOrder = orderRepository.save(order);
+
+        // Kafka event publish karo
+        OrderCreatedEvent event = new OrderCreatedEvent(
+                savedOrder.getId(),
+                savedOrder.getCustomerName(),
+                savedOrder.getItems().stream()
+                        .map(item -> new OrderCreatedEvent.OrderItemEvent(
+                                item.getSku(),
+                                UUID.fromString("00000000-0000-0000-0000-000000000001"), // temporary default warehouse
+                                item.getQuantity()))
+                        .collect(Collectors.toList()));
+        orderEventProducer.publishOrderCreated(event);
 
         return mapToResponse(savedOrder);
     }
