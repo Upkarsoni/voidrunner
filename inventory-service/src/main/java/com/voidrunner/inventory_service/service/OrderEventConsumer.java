@@ -1,5 +1,7 @@
 package com.voidrunner.inventory_service.service;
 
+import com.voidrunner.common.events.InventoryFailedEvent;
+import com.voidrunner.common.events.InventoryReservedEvent;
 import com.voidrunner.common.events.OrderCreatedEvent;
 import com.voidrunner.inventory_service.dto.ReservationResponse;
 import com.voidrunner.inventory_service.dto.ReserveInventoryRequest;
@@ -10,9 +12,12 @@ import org.springframework.stereotype.Component;
 public class OrderEventConsumer {
 
     private final InventoryService inventoryService;
+    private final InventoryEventProducer inventoryEventProducer;
 
-    public OrderEventConsumer(InventoryService inventoryService) {
+    public OrderEventConsumer(InventoryService inventoryService,
+                               InventoryEventProducer inventoryEventProducer) {
         this.inventoryService = inventoryService;
+        this.inventoryEventProducer = inventoryEventProducer;
     }
 
     @KafkaListener(topics = "order.created", groupId = "inventory-service-group")
@@ -32,6 +37,16 @@ public class OrderEventConsumer {
 
             System.out.println("Reservation for SKU " + item.getSku() + ": " + response.isSuccess()
                     + " - " + response.getMessage());
+
+            if (response.isSuccess()) {
+                inventoryEventProducer.publishReserved(
+                        new InventoryReservedEvent(event.getOrderId(), item.getSku(), item.getQuantity())
+                );
+            } else {
+                inventoryEventProducer.publishFailed(
+                        new InventoryFailedEvent(event.getOrderId(), item.getSku(), response.getMessage())
+                );
+            }
         }
     }
 }
