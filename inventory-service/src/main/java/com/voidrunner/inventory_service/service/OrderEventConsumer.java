@@ -20,7 +20,7 @@ public class OrderEventConsumer {
         this.inventoryEventProducer = inventoryEventProducer;
     }
 
-    @KafkaListener(topics = "order.created", groupId = "inventory-service-group")
+    @KafkaListener(topics = "order.created", groupId = "inventory-test-group")
     public void handleOrderCreated(OrderCreatedEvent event) {
 
         System.out.println("Received order.created event for order: " + event.getOrderId());
