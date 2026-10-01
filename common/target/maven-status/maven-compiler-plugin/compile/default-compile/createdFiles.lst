@@ -1,4 +1,6 @@
 com\voidrunner\common\events\InventoryFailedEvent.class
+com\voidrunner\common\events\PaymentCompletedEvent.class
 com\voidrunner\common\events\OrderCreatedEvent$OrderItemEvent.class
 com\voidrunner\common\events\OrderCreatedEvent.class
 com\voidrunner\common\events\InventoryReservedEvent.class
+com\voidrunner\common\events\PaymentFailedEvent.class
