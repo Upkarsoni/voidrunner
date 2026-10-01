@@ -2,6 +2,7 @@ services:
   postgres:
     image: postgres:16
     container_name: voidrunner-postgres
+    restart: unless-stopped
     environment:
       POSTGRES_PASSWORD: postgres
     ports:
@@ -10,12 +11,14 @@ services:
   redis:
     image: redis:7
     container_name: voidrunner-redis
+    restart: unless-stopped
     ports:
       - "6379:6379"
 
   kafka:
     image: apache/kafka:3.7.0
     container_name: voidrunner-kafka
+    restart: unless-stopped
     ports:
       - "9092:9092"
     environment:
@@ -26,3 +29,7 @@ services:
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
